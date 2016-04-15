@@ -24,7 +24,7 @@ Y_test = [(1.0 / (1.0 + np.exp(-np.dot(a1, x))) + np.dot(a2, x)**2 + Z) for x in
 def SGDsolver(X, Y, n, hid):
     # initialize the parameters, assume we have k, i, j layers
     # input X_k, hidden layer output H, last layer output y
-    # hid is the number of hidden layers
+    # hid is the number of unit of hidden layer. (only one hidden layer)
     eta = 0.001
     W_ki = np.random.normal(size=(2, hid))
     W_ij = np.random.normal(size=hid)
