@@ -1,0 +1,125 @@
+__author__ = 'fydlzr'
+
+import numpy as np
+import random
+
+# generate training data set
+X = [np.random.normal(size=2) for i in range(100)]
+Z = np.random.normal()
+a1 = np.array([3, 3])
+a2 = np.array([3, -3])
+Y = [(1.0 / (1.0 + np.exp(-np.dot(a1, x))) + np.dot(a2, x)**2+ Z) for x in X]
+
+# generate testing data set
+X_test = [np.random.normal(size=2) for i in range(100)]
+Z = np.random.normal()
+a1 = np.array([3, 3])
+a2 = np.array([3, -3])
+Y_test = [(1.0 / (1.0 + np.exp(-np.dot(a1, x))) + np.dot(a2, x)**2 + Z) for x in X_test]
+'''
+X = np.array([  [0,0,1],
+                [0,1,1],
+                [1,0,1],
+                [1,1,1] ])
+ 
+# output dataset            
+Y = np.array([[0,0,1,1]]).T
+
+X_test = X
+Y_test = Y
+'''
+
+def SGDsolver(X, Y, n, hid):
+    # initialize the parameters, assume we have k, i, j layers
+    # input X_k, hidden layer output H, last layer output y
+    # hid is the number of hidden layers
+    eta = 0.001
+    W_ki = np.random.normal(size=(2, hid))
+    W_ij = np.random.normal(size=hid)
+    W_k0 = 0
+    W_i0 = 0
+
+    for i in range(n):
+        # print i
+        ind = random.randint(0, len(Y)-1)
+        X_k = X[ind]
+        t = Y[ind]
+        H = 1. / (1. + np.exp(-(np.dot(X_k, W_ki) + W_k0)))
+        y = np.dot(W_ij, H) + W_i0
+
+        if i%100==0:
+            print "Error:" + str(np.mean(np.abs(y-t)))
+
+        # update the last layer
+        W_ij_new = W_ij - 2*eta*(y - t)*H
+        W_i0_new = W_i0 - 2*eta*(y - t)
+        W_ki_new = W_ki - eta*np.outer(np.multiply(2*(y - t)*W_ij, H), X_k).T
+        W_k0_new = W_k0 - eta*np.multiply(2*(y - t)*W_ij, H).T
+
+        W_ij = W_ij_new
+        W_ki = W_ki_new
+        W_i0 = W_i0_new
+        W_k0 = W_k0_new
+
+    return W_ki, W_ij, W_i0, W_k0
+
+
+def sigmoid(z):
+	return 1. / (1. + np.exp(-z))
+
+def fprime(z):
+    sz = sigmoid(z)
+    return (sz*(1-sz))
+
+
+def SGDsolver2(X, Y, m, hid):
+    eta = 0.001
+    input_size = 2
+    W_ki = np.random.normal(size=(input_size, hid))
+    W_ij = np.random.normal(size=hid)
+    b1 = 1
+    b2 = 1
+    for i in range(m):
+        # print i
+        ind = random.randint(0, len(Y)-1)
+        x = X[ind]
+        y = Y[ind]
+
+        z2 = np.dot(x, W_ki) + b1
+        aa2 = sigmoid(z2)
+
+        #aa2 = np.concatenate((aa2, bias), axis=1)
+        z3 = np.dot(aa2,W_ij)+b2
+        aa3 = sigmoid(z3)
+
+        if i%100==0:
+            print "Error:" + str(np.mean(np.abs(y-aa3)))
+
+        delta3 = - np.multiply((y - aa3),fprime(z3))
+        delta2 = (W_ij.T[0:hid]* delta3)*fprime(z2)
+
+        W_ij_new = W_ij - eta*delta3*aa2.T
+        W_ki_new = W_ki - eta*np.dot(delta2.reshape(hid,1), x.reshape(1,input_size)).T
+        b1_new = b1 - eta * delta2
+        b2_new = b2 - eta * delta3
+        
+        W_ij = W_ij_new
+        W_ki = W_ki_new
+        b1 = b1_new
+        b2 = b2_new
+
+    return W_ki, W_ij ,b1,b2
+
+
+#======= Q(b) ========
+
+epoch = [3000]
+
+for i in epoch:
+    W_ki, W_ij, W_i0, W_k0 = SGDsolver(X, Y, i, 10)
+
+print '='*50
+    
+for i in epoch:
+    W_ki, W_ij = SGDsolver2(X, Y, i, 10)
+    
